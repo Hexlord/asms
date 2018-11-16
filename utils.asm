@@ -53,8 +53,8 @@
 	c_char_not_a_dec_digit:		equ 20h		; ASCII символа обозначения не-десятичной цифры
 	
 	c_lcd_line_length:			equ 20d		; 
-	g_lcd_line0:				db c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e
-	g_lcd_line1:				db c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e,c_e
+	g_lcd_line0:				db #c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e
+	g_lcd_line1:				db #c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e
 
 	; Код:
 	
@@ -86,8 +86,9 @@ org 8023h
 	ljmp dptr
 	
 f_timer0_start:
-	anl TMOD, #11110000b
-	orl TMOD, #00000001b
+	clr tr0
+	anl tmod, #11110000b
+	orl tmod, #00000001b
 	
 	mov TH0, #ECh
 	mov TL0, #77h
@@ -103,6 +104,22 @@ f_timer0_start:
 	
 f_timer0_stop:
 	clr tr0
+	ret
+	
+f_timer1_start:
+	clr tr1
+	
+	mov scon, #11010010b				; 9-битный асинхронный режим с переменной скоростью и флагом TI
+	
+	anl tmod, #00001111b				; режим работы автогенератора на основе 8 разр. TL.x
+	orl tmod, #00100000b
+	
+	mov th1, #C6h						; 1200 бит/с
+	
+	anl D8H, #7Fh						; сброс BD в ADCON
+	anl 87h, #7Fh						; сброс SMOD в PCON
+	
+	setb tr1
 	ret
 	
 f_usart_start:
@@ -218,11 +235,27 @@ f_concat_append:
 	
 	; input: a - символ, b - кол-во
 f_concat_fill:
-	push r0
+	push b
 	cjne b, #0h
 	dec b
 	lcall f_concat_append
-	pop r0
+	pop b
+	ret
+	
+	; input: b - число символов, dptr - источник
+	; output: заполняет активную строку символами из источника
+f_concat_copy:
+	push b
+	push dph
+	push dpl
+	cjne b, #0h
+	dec b
+	mov a, @dptr
+	inc dptr
+	lcall f_concat_append
+	pop dpl
+	pop dph
+	pop b
 	ret
 	
 	; input: a = high, b = low, dptr = с чем сравниваем

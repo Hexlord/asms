@@ -157,7 +157,7 @@ l_prog2:								; программа отрисовки
 	mov dptr, #g_lcd_line0
 	lcall f_concat_start
 	
-	mov a, c_e
+	mov a, #c_e
 	mov b, #c_lcd_line_length
 	lcall f_concat_fill
 	
@@ -179,7 +179,7 @@ f_init_os:
 	mov dptr, #l_prog0
 	mov a, dph
 	mov b, dpl
-	mov dptr, #d_prog0 + 8
+	mov dptr, #d_prog0 + #8d
 	mov @dptr, b
 	inc dptr
 	mov @dptr, a
@@ -187,7 +187,7 @@ f_init_os:
 	mov dptr, #l_prog1
 	mov a, dph
 	mov b, dpl
-	mov dptr, #d_prog1 + 8
+	mov dptr, #d_prog1 + #8d
 	mov @dptr, b
 	inc dptr
 	mov @dptr, a
@@ -195,7 +195,7 @@ f_init_os:
 	mov dptr, #l_prog2
 	mov a, dph
 	mov b, dpl
-	mov dptr, #d_prog2 + 8
+	mov dptr, #d_prog2 + #8d
 	mov @dptr, b
 	inc dptr
 	mov @dptr, a

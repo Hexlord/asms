@@ -86,7 +86,7 @@ f_main_loop:
 	mov dptr, #g_lcd_line0
 	lcall f_concat_start
 	
-	mov a, c_e
+	mov a, #c_e
 	mov b, #c_lcd_line_length
 	lcall f_concat_fill
 	
@@ -100,7 +100,7 @@ f_main_loop:
 	lcall f_a_digit_to_char
 	lcall f_concat_append
 	
-	mov a, c_e
+	mov a, #c_e
 	lcall f_concat_append
 	
 	mov a, g_second_count
