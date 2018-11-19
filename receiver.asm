@@ -1,60 +1,60 @@
 
 
-	; Р›РµРіРµРЅРґР°:
+	; Легенда:
 	;
-	; c_* - С†РµР»РѕС‡РёСЃР»РµРЅРЅС‹Рµ РєРѕРЅСЃС‚Р°РЅС‚С‹, РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СЃ #
-	; g_* - Р°РґСЂРµСЃРЅС‹Рµ РєРѕРЅСЃС‚Р°РЅС‚С‹ (РїРµСЂРµРјРµРЅРЅС‹Рµ)
-	; gb_* - Р±РёС‚РѕРІС‹Рµ Р°РґСЂРµСЃРЅС‹Рµ РєРѕРЅСЃС‚Р°РЅС‚С‹ (Р±РёС‚РѕРІС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ)
+	; c_* - целочисленные константы, использовать с #
+	; g_* - адресные константы (переменные)
+	; gb_* - битовые адресные константы (битовые переменные)
 	;
-	; l_* - РєРѕРґ РјРµС‚РєРё, РІС‹Р·С‹РІР°РµС‚СЃСЏ С‡РµСЂРµР· ljmp
-	; f_* - РєРѕРґ С„СѓРЅРєС†РёРё, РІС‹Р·С‹РІР°РµС‚СЃСЏ С‡РµСЂРµР· lcall
-	; fl_* - РєРѕРґ РјРµС‚РєРё С„СѓРЅРєС†РёРё, РІС‹Р·С‹РІР°РµС‚СЃСЏ С‡РµСЂРµР· ljmp С‚РѕР»СЊРєРѕ РёР·РЅСѓС‚СЂРё С„СѓРЅРєС†РёРё
-	; i_* - РєРѕРґ РїСЂРµСЂС‹РІР°РЅРёСЏ
-	; il_* - РєРѕРґ РјРµС‚РєРё РїСЂРµСЂС‹РІР°РЅРёСЏ, РІС‹Р·С‹РІР°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РёР·РЅСѓС‚СЂРё РїСЂРµСЂС‹РІР°РЅРёСЏ
+	; l_* - код метки, вызывается через ljmp
+	; f_* - код функции, вызывается через lcall
+	; fl_* - код метки функции, вызывается через ljmp только изнутри функции
+	; i_* - код прерывания
+	; il_* - код метки прерывания, вызывается только изнутри прерывания
 	
-	; РЎРѕС…СЂР°РЅРµРЅРёРµ:
+	; Сохранение:
 	
-	; РџРµСЂРµР·Р°РїРёСЃСЊ:
-	; r0, r1 РІ f_os_update РїРѕ РїСЂРµСЂС‹РІР°РЅРёСЋ С‚Р°Р№РјРµСЂР°
+	; Перезапись:
+	; r0, r1 в f_os_update по прерыванию таймера
 	
 ; main
 	org 8100h
 	lcall f_main
 	
-	; Р—Р°РІРёСЃРёРјРѕСЃС‚Рё:
+	; Зависимости:
 	
 	include asms\utils.asm
 	
-	; РљРѕРЅСЃС‚Р°РЅС‚С‹:
+	; Константы:
 	
-	c_tick_per_upd:			equ 200d	; С‚РёРєРѕРІ РІ РѕР±РЅРѕРІР»РµРЅРёРё
-	c_tick_per_upd_dec:		equ 199d	; С‚РёРєРѕРІ РІ РѕР±РЅРѕРІР»РµРЅРёРё РјРёРЅСѓСЃ 1
-	c_upd_per_sec:			equ 10d		; РѕР±РЅРѕРІР»РµРЅРёР№ РІ СЃРµРєСѓРЅРґРµ
-	c_sec_per_min:			equ 60d		; СЃРµРєСѓРЅРґ РІ РјРёРЅСѓС‚Рµ
+	c_tick_per_upd:			equ 200d	; тиков в обновлении
+	c_tick_per_upd_dec:		equ 199d	; тиков в обновлении минус 1
+	c_upd_per_sec:			equ 10d		; обновлений в секунде
+	c_sec_per_min:			equ 60d		; секунд в минуте
 
-	c_timer_period_high		equ FEh		; С‡Р°СЃС‚РѕС‚Р° 2 РљР“С† (500 РјРєСЃ)
+	c_timer_period_high		equ FEh		; частота 2 КГц (500 мкс)
 	c_timer_period_low		equ 0Bh		;
 	
 	c_max_message_length	equ 40d		;
 		
-	g_tick_count: 			equ 52h 	; РєРѕР»-РІРѕ С‚РёРєРѕРІ
-	g_update_count:			equ 53h 	; РєРѕР»-РІРѕ РѕР±РЅРѕРІР»РµРЅРёР№
-	g_second_count: 		equ 54h 	; РєРѕР»-РІРѕ СЃРµРєСѓРЅРґ
-	g_minute_count: 		equ 55h 	; РєРѕР»-РІРѕ РјРёРЅСѓС‚
+	g_tick_count: 			equ 52h 	; кол-во тиков
+	g_update_count:			equ 53h 	; кол-во обновлений
+	g_second_count: 		equ 54h 	; кол-во секунд
+	g_minute_count: 		equ 55h 	; кол-во минут
 	
 	c_task_count			equ 2d		;
-	c_symbol_timeout		equ 2d		; С‚Р°Р№РјР°СѓС‚ РѕР¶РёРґР°РЅРёСЏ СЃРёРјРІРѕР»Р° РІ СЃРµРєСѓРЅРґР°С… (РЅРµ РјРµРЅРµРµ 2, С‚Р°Рє РєР°Рє РїРѕРіСЂРµС€РЅРѕСЃС‚СЊ [0, -1))
+	c_symbol_timeout		equ 2d		; таймаут ожидания символа в секундах (не менее 2, так как погрешность [0, -1))
 			
 	g_current_task			equ 56h		; 0, 1
-	g_symbol_received_count equ 57h		; СЃС‡РµС‚С‡РёРє РїРѕР»СѓС‡РµРЅРЅС‹С… СЃРёРјРІРѕР»РѕРІ
-	gb_symbols_finished		equ 58h		; С„Р»Р°Рі РѕРєРѕРЅС‡Р°РЅРёСЏ РїРѕСЃС‹Р»РєРё (РїРѕР»СѓС‡РµРЅС‹ 40 СЃРёРјРІРѕР»РѕРІ РёР»Рё С‚РѕС‡РєР°)
-	g_last_symbol_time		equ 59h		; РІСЂРµРјСЏ РїРѕР»СѓС‡РµРЅРёСЏ РїРѕСЃР»РµРґРЅРµРіРѕ СЃРёРјРІРѕР»Р° РІ СЃРµРєСѓРЅРґР°С…
+	g_symbol_received_count equ 57h		; счетчик полученных символов
+	gb_symbols_finished		equ 58h		; флаг окончания посылки (получены 40 символов или точка)
+	g_last_symbol_time		equ 59h		; время получения последнего символа в секундах
 	
-	; РїРѕР»СѓС‡РµРЅРЅС‹Р№ С‚РµРєСЃС‚
+	; полученный текст
 	g_line0:			db #c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e
 	g_line1:			db #c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e,#c_e
 
-	; РљРѕРґ:
+	; Код:
 	
 f_main:
 	lcall f_init_os
@@ -75,14 +75,14 @@ f_load_descriptor_addr:
 	push b
 	mov dptr, #d_prog0
 	mov a, g_current_task
-	mov b, #18d						; РґРµСЃРєСЂРёРїС‚РѕСЂ Р·Р°РЅРёРјР°РµС‚ 18 Р±Р°Р№С‚
+	mov b, #18d						; дескриптор занимает 18 байт
 	mul ab
 	
-	clr c							; РїСЂРёР±Р°РІР»СЏРµРј СЃРјРµС‰РµРЅРёРµ
+	clr c							; прибавляем смещение
 	add a, dpl
 	mov dpl, a
 	mov a, #0h
-	add a, dph 						; СЃ СѓС‡РµС‚РѕРј РїРµСЂРµРЅРѕСЃР°
+	add a, dph 						; с учетом переноса
 	mov dph, a
 	
 	pop b
@@ -103,25 +103,25 @@ f_os_update:
 	mov r0, sp
 	inc r0
 	
-	mov r1, #0h						; Р°РґСЂРµСЃ РІ РїР°РјСЏС‚Рё
-fl_os_update_loop0:					; С†РёРєР» РїРµСЂРµР·Р°РїРёСЃРё РґРµСЃРєСЂРёРїС‚РѕСЂР° С‚РµРєСѓС‰РёРј РєРѕРЅС‚РµРєСЃС‚РѕРј
+	mov r1, #0h						; адрес в памяти
+fl_os_update_loop0:					; цикл перезаписи дескриптора текущим контекстом
 	mov a, @r1
 	movx @dptr, a
 	inc r1
 	inc dptr
 	djnz r0, fl_os_update_loop0
 	
-	mov a, g_current_task			; РїРµСЂРµРєР»СЋС‡РµРЅРёРµ Р·Р°РґР°С‡
+	mov a, g_current_task			; переключение задач
 	inc a
 	mov b, #c_task_count
 	lcall f_modulo
 	mov g_current_task, a
 	
-	; СЃРјРµРЅР° РєРѕРЅС‚РµРєСЃС‚Р°
+	; смена контекста
 	lcall f_load_descriptor_addr
 	
 	mov r1, #0h
-fl_os_update_loop1:					; С†РёРєР» Р·Р°РіСЂСѓР·РєРё РєРѕРЅС‚РµРєСЃС‚Р° РёР· РґРµСЃРєСЂРёРїС‚РѕСЂР°
+fl_os_update_loop1:					; цикл загрузки контекста из дескриптора
 	movx a, @dptr
 	mov @r1, a
 	inc r1
@@ -153,12 +153,12 @@ i_timer0_tick:
 	reti
 		
 f_receive:
-	jnb ri, f_receive					; РѕР¶РёРґР°РµРј РєРѕРЅС†Р° РїСЂРёРµРјР° (Р±Р»РѕРєРёСЂРѕРІР°РЅРёРµ)
+	jnb ri, f_receive					; ожидаем конца приема (блокирование)
 	mov a, sbuf	
 	clr ri
 	ret
 	
-	; output: a - РІСЂРµРјСЏ РІ СЃРµРєСѓРЅРґР°С…
+	; output: a - время в секундах
 f_time:
 	mov a, g_minute_count
 	mov b, #c_sec_per_min
@@ -167,12 +167,12 @@ f_time:
 	ret
 	
 f_send:
-	jnb ti, f_send						; РѕР¶РёРґР°РµРј Р·Р°РІРµСЂС€РµРЅРёСЏ РїСЂРµРґ. РїРµСЂРµРґР°С‡Рё (Р±Р»РѕРєРёСЂРѕРІР°РЅРёРµ)
+	jnb ti, f_send						; ожидаем завершения пред. передачи (блокирование)
 	mov sbuf, a
 	clr ti
 	ret
 	
-	; input: a - СЃРёРјРІРѕР»
+	; input: a - символ
 f_process_symbol:
 	push dph
 	push dpl
@@ -188,13 +188,13 @@ f_process_symbol:
 	pop dph
 	ret
 	
-l_prog0:								; РїСЂРѕРіСЂР°РјРјР° РїСЂРёС‘РјР°
+l_prog0:								; программа приёма
 	cpl p1.1
 	
-	; РїРѕР»СѓС‡РµРЅРёРµ РїРѕСЃС‹Р»РєРё
+	; получение посылки
 	clr g_symbols_finished
 	
-	mov dptr, #g_line0					; РѕС‡РёСЃС‚РёРј Р±СѓС„С„РµСЂ
+	mov dptr, #g_line0					; очистим буффер
 	lcall f_concat_start
 	
 	mov a, #c_e
@@ -211,11 +211,11 @@ l_prog0_rcv_loop:
 	lcall f_send
 	jnb g_symbols_finished, l_prog0_rcv_loop
 		
-l_prog0_render:							; РѕС‚СЂРёСЃРѕРІРєР°
+l_prog0_render:							; отрисовка
 	mov dptr, #g_lcd_line0
 	lcall f_concat_start
 	
-	mov dptr, #g_line0					; РєРѕРїРёСЂСѓРµРј СЃРѕРѕР±С‰РµРЅРёРµ РІ РІРёРґРµРѕР±СѓС„С„РµСЂ
+	mov dptr, #g_line0					; копируем сообщение в видеобуффер
 	mov b, #c_max_message_length
 	lcall f_concat_copy
 	
@@ -224,7 +224,7 @@ l_prog0_render:							; РѕС‚СЂРёСЃРѕРІРєР°
 	ljmp l_prog0
 	
 f_error_text:
-	mov dptr, #g_line0					; РѕС‡РёСЃС‚РёРј Р±СѓС„С„РµСЂ
+	mov dptr, #g_line0					; очистим буффер
 	lcall f_concat_start
 	
 	mov a, #c_e
@@ -232,35 +232,35 @@ f_error_text:
 	lcall f_concat_fill
 	lcall f_concat_fill
 	
-	mov a, #??h;						; РІРІРѕРґРёРј РћС€РёР±РєР°
+	mov a, #??h;						; вводим Ошибка
 	lcall f_concat_append
-	mov a, #??h;						; РІРІРѕРґРёРј РћС€РёР±РєР°
+	mov a, #??h;						; вводим Ошибка
 	lcall f_concat_append
-	mov a, #??h;						; РІРІРѕРґРёРј РћС€РёР±РєР°
+	mov a, #??h;						; вводим Ошибка
 	lcall f_concat_append
-	mov a, #??h;						; РІРІРѕРґРёРј РћС€РёР±РєР°
+	mov a, #??h;						; вводим Ошибка
 	lcall f_concat_append
-	mov a, #??h;						; РІРІРѕРґРёРј РћС€РёР±РєР°
+	mov a, #??h;						; вводим Ошибка
 	lcall f_concat_append
-	mov a, #??h;						; РІРІРѕРґРёРј РћС€РёР±РєР°
+	mov a, #??h;						; вводим Ошибка
 	lcall f_concat_append
 	ret
 	
-l_prog1:								; РїСЂРѕРіСЂР°РјРјР° РєРѕРЅС‚СЂРѕР»СЏ РѕС€РёР±РєРё
+l_prog1:								; программа контроля ошибки
 	cpl p1.2
 	
-	jb g_symbols_finished, l_prog1		; РЅРµС‚ РѕР¶РёРґР°РµРјРѕР№ РїРѕСЃС‹Р»РєРё
+	jb g_symbols_finished, l_prog1		; нет ожидаемой посылки
 	
 	lcall f_time
 	clr c
 	subb a, g_last_symbol_time
 	subb a, c_symbol_timeout + #1d
-	jc l_prog1							; РїСЂРѕРІРµСЂРєР° РЅР°Р±СЂР°Р»СЃСЏ Р»Рё С‚Р°Р№РјР°СѓС‚
+	jc l_prog1							; проверка набрался ли таймаут
 	
-	lcall f_error_text					; СЃРѕРѕР±С‰РµРЅРёРµ РѕР± РѕС€РёР±РєРµ
+	lcall f_error_text					; сообщение об ошибке
 	setb g_symbols_finished
 	
-	mov dptr, #l_prog0_render			; РїСЂРµСЂС‹РІР°РЅРёРµ receive Рё РїРµСЂРµС…РѕРґ Рє РѕС‚СЂРёСЃРѕРІРєРµ
+	mov dptr, #l_prog0_render			; прерывание receive и переход к отрисовке
 	mov a, dph
 	mov b, dpl
 	mov dptr, #d_prog0 + #8d
@@ -273,7 +273,7 @@ l_prog1:								; РїСЂРѕРіСЂР°РјРјР° РєРѕРЅС‚СЂРѕР»СЏ РѕС€РёР±РєРё
 f_init_os:
 	mov g_current_task, #0h
 	
-	; Р·Р°РїРёСЃС‹РІР°РµРј Р°РґСЂРµСЃР° РїСЂРѕРіСЂР°Рј РІ РґРµСЃРєСЂРёРїС‚РѕСЂС‹
+	; записываем адреса програм в дескрипторы
 	mov dptr, #l_prog0
 	mov a, dph
 	mov b, dpl
@@ -292,7 +292,7 @@ f_init_os:
 	
 	ret
 	
-	; Р·Р°РїР°СЃС‘РјСЃСЏ РїР°РјСЏС‚СЊСЋ РґР»СЏ СЃР»СѓС‡Р°СЏ РіР»СѓР±РѕРєРѕРіРѕ СЃС‚РµРєР°
+	; запасёмся памятью для случая глубокого стека
 d_prog0:	db 11h, 1,0,0,0,0,0,0, 00, 00, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 d_prog1:	db 11h, 1,0,0,0,0,0,0, 00, 00, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -303,28 +303,28 @@ f_time_update:
 	mov a, #c_tick_per_upd_dec
 	clr c
 	subb a, g_tick_count
-	jnc fl_time_update_end					; РїСЂРѕРІРµСЂРєР° >= 200 РёС‚РµСЂР°С†РёР№
+	jnc fl_time_update_end					; проверка >= 200 итераций
 	
 	mov a, g_tick_count
 	subb a, #c_tick_per_upd
-	mov g_tick_count, a						; РІС‹С‡РёС‚Р°РµРј 200 РёР· С‡РёСЃР»Р° С‚РёРєРѕРІ
+	mov g_tick_count, a						; вычитаем 200 из числа тиков
 
 	inc g_update_count
 	
 	mov a, g_update_count
 		
-	; РїСЂРѕРІРµСЂРєР° СЃРµРєСѓРЅРґС‹
+	; проверка секунды
 	cjne a, #c_upd_per_sec, fl_time_update_end
 	inc g_second_count
 	
-	mov g_update_count, #0h			; СЃР±СЂРѕСЃ СЃС‡РµС‚С‡РёРєР° РѕР±РЅРѕРІР»РµРЅРёР№
+	mov g_update_count, #0h			; сброс счетчика обновлений
 	
-	; РїСЂРѕРІРµСЂРєР° РјРёРЅСѓС‚С‹
+	; проверка минуты
 	mov a, g_second_count
 	cjne a, #c_sec_per_min, fl_time_update_end
 	inc g_minute_count
 	
-	mov g_second_count, #0h			; СЃР±СЂРѕСЃ СЃРµРєСѓРЅРґ
+	mov g_second_count, #0h			; сброс секунд
 	
 fl_time_update_end:
 	ret
